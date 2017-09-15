@@ -8,12 +8,10 @@ import akka.http.scaladsl.server._
 import akka.pattern.ask
 import akka.util.Timeout
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
-
-class RestApi(system: ActorSystem, timeout: Timeout)
-  extends RestRoutes {
+class RestApi(system: ActorSystem, timeout: Timeout) extends RestRoutes {
   implicit val requestTimeout = timeout
 
   implicit def executionContext = system.dispatcher
@@ -21,8 +19,7 @@ class RestApi(system: ActorSystem, timeout: Timeout)
   def createBoxOffice() = system.actorOf(BoxOffice.props, BoxOffice.name)
 }
 
-trait RestRoutes extends BoxOfficeApi
-  with EventMarshalling {
+trait RestRoutes extends BoxOfficeApi with EventMarshalling {
 
   import StatusCodes._
 
@@ -99,9 +96,10 @@ trait BoxOfficeApi {
 
   lazy val boxOffice = createBoxOffice()
 
-  def createEvent(event: String, nrOfTickets: Int) =
+  def createEvent(event: String, nrOfTickets: Int) = {
     boxOffice.ask(CreateEventRequest(event, nrOfTickets))
       .mapTo[EventResponse]
+  }
 
   def getEvents() =
     boxOffice.ask(GetEvents).mapTo[Events]
@@ -118,5 +116,3 @@ trait BoxOfficeApi {
     boxOffice.ask(GetTickets(event, tickets))
       .mapTo[TicketSeller.EventTickets]
 }
-
-//

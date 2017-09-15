@@ -12,6 +12,15 @@ case class TicketRequest(tickets: Int) {
 
 case class Error(message: String)
 
+sealed trait EventCategory {
+  def category: String = "Uncategorized"
+}
+
+case object Uncategorized extends EventCategory
+
+case object RockMusic extends EventCategory {
+  override val category = "Rock Music"
+}
 
 trait EventMarshalling extends DefaultJsonProtocol {
 

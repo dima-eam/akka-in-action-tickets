@@ -5,6 +5,9 @@ import akka.util.Timeout
 
 import scala.concurrent.Future
 
+/**
+  * Companion for supervisor actor BoxOffice
+  */
 object BoxOffice {
   def props(implicit timeout: Timeout) = Props(new BoxOffice)
 
@@ -37,7 +40,14 @@ class BoxOffice(implicit timeout: Timeout) extends Actor {
   import BoxOffice._
   import context._
 
-
+  /**
+    * Creates an actor representing tickets holder for event. New actor live in context and can be
+    * referenced via [[akka.actor.ActorContext#actorOf]] method
+    *
+    * @param name event name
+    * @param category event category
+    * @return ref to a new actor
+    */
   def createTicketSeller(name: String, category: EventCategory) =
     context.actorOf(TicketSeller.props(name, category), name)
 
@@ -56,7 +66,7 @@ class BoxOffice(implicit timeout: Timeout) extends Actor {
     case GetTickets(event, tickets) =>
       def notFound() = sender() ! TicketSeller.EventTickets(event)
       def buy(child: ActorRef) =
-        child.forward(TicketSeller.Buy(tickets))
+        child forward TicketSeller.Buy(tickets)
 
       context.child(event).fold(notFound())(buy)
 
