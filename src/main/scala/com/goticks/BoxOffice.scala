@@ -2,18 +2,19 @@ package com.goticks
 
 import akka.actor._
 import akka.util.Timeout
+import com.goticks.EventCategories.EventCategory
 
 import scala.concurrent.Future
 
 /**
-  * Companion for supervisor actor BoxOffice
+  * Companion for supervisor actor BoxOffice. Contains its [[Props]] and possible events.
   */
 object BoxOffice {
   def props(implicit timeout: Timeout) = Props(new BoxOffice)
 
   def name = "boxOffice"
 
-  case class CreateEventRequest(name: String, tickets: Int, category: EventCategory = Uncategorized)
+  case class CreateEvent(name: String, tickets: Int, category: EventCategory)
 
   case class GetEvent(name: String)
 
@@ -23,7 +24,7 @@ object BoxOffice {
 
   case class CancelEvent(name: String)
 
-  case class Event(name: String, tickets: Int, category: EventCategory = Uncategorized)
+  case class Event(name: String, tickets: Int, category: EventCategory)
 
   case class Events(events: Vector[Event])
 
@@ -35,7 +36,7 @@ object BoxOffice {
 
 }
 
-class BoxOffice(implicit timeout: Timeout) extends Actor {
+class BoxOffice(implicit timeout: Timeout) extends Actor with ActorLogging {
 
   import BoxOffice._
   import context._
@@ -44,7 +45,7 @@ class BoxOffice(implicit timeout: Timeout) extends Actor {
     * Creates an actor representing tickets holder for event. New actor live in context and can be
     * referenced via [[akka.actor.ActorContext#actorOf]] method
     *
-    * @param name event name
+    * @param name     event name
     * @param category event category
     * @return ref to a new actor
     */
@@ -52,7 +53,7 @@ class BoxOffice(implicit timeout: Timeout) extends Actor {
     context.actorOf(TicketSeller.props(name, category), name)
 
   def receive = {
-    case CreateEventRequest(name, tickets, category) =>
+    case CreateEvent(name, tickets, category) =>
       def create() = {
         val eventTickets = createTicketSeller(name, category)
         val newTickets = (1 to tickets).map { ticketId =>

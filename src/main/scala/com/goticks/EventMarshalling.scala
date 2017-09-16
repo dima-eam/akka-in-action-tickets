@@ -1,8 +1,9 @@
 package com.goticks
 
+import com.goticks.EventCategories.{EventCategory, Uncategorized}
 import spray.json._
 
-case class EventDescription(tickets: Int) {
+case class EventDescription(tickets: Int, eventCategory: EventCategory = Uncategorized) {
   require(tickets > 0)
 }
 
@@ -12,32 +13,25 @@ case class TicketRequest(tickets: Int) {
 
 case class Error(message: String)
 
-sealed trait EventCategory {
-  def category: String = "Uncategorized"
-}
+object EventCategories {
 
-case object Uncategorized extends EventCategory
+  case class EventCategory(name: String) {
+    require(name.length > 0)
+  }
 
-case object RockMusic extends EventCategory {
-  override val category = "Rock Music"
+  object Uncategorized extends EventCategory("Uncategorized")
+
+  object RockMusic extends EventCategory("Rock Music")
+
+  val values = Seq(Uncategorized, RockMusic)
 }
 
 trait EventMarshalling extends DefaultJsonProtocol {
 
   import BoxOffice._
 
-  implicit object EventCategoryJsonFormat extends RootJsonFormat[EventCategory] {
-
-    def write(ec: EventCategory) = JsObject("category" -> JsString(ec.category))
-
-    def read(value: JsValue) =
-      value.asJsObject.fields("category") match {
-        case JsString("Rock Music") => RockMusic
-        case _ => throw new UninitializedError
-      }
-  }
-
-  implicit val eventDescriptionFormat = jsonFormat1(EventDescription)
+  implicit val eventCategoryFormat = jsonFormat1(EventCategory)
+  implicit val eventDescriptionFormat = jsonFormat2(EventDescription)
   implicit val eventFormat = jsonFormat3(Event)
   implicit val eventsFormat = jsonFormat1(Events)
   implicit val ticketRequestFormat = jsonFormat1(TicketRequest)

@@ -13,13 +13,18 @@ import scala.concurrent.Future
 
 /**
   * Main application object.
-  * Creates configuration, actor system, API routes and starts HTTP server
+  * Creates configuration, actor system, API routes and starts HTTP server.
+  * <p>
+  * Every Akka application requires three ```implicit``` components:
+  *  - [[ActorSystem]]
+  *  - [[ActorMaterializer]]
+  *  - executionContext, usually from [[ActorSystem#dispatcher]]
+  *
   */
 object Main extends App  with RequestTimeout {
 
   val config = ConfigFactory.load()
   val host = config.getString("http.host")
-  // Gets the host and a port from the configuration
   val port = config.getInt("http.port")
 
   implicit val system = ActorSystem()

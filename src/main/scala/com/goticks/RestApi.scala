@@ -7,11 +7,13 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.pattern.ask
 import akka.util.Timeout
+import com.goticks.EventCategories.EventCategory
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 class RestApi(system: ActorSystem, timeout: Timeout) extends RestRoutes {
+
   implicit val requestTimeout = timeout
 
   implicit def executionContext = system.dispatcher
@@ -43,7 +45,7 @@ trait RestRoutes extends BoxOfficeApi with EventMarshalling {
         post {
           // POST /events/:event
           entity(as[EventDescription]) { ed =>
-            onSuccess(createEvent(event, ed.tickets)) {
+            onSuccess(createEvent(event, ed.tickets, ed.eventCategory)) {
               case BoxOffice.EventCreated(event) => complete(Created, event)
               case BoxOffice.EventExists =>
                 val err = Error(s"$event event exists already.")
@@ -66,7 +68,6 @@ trait RestRoutes extends BoxOfficeApi with EventMarshalling {
       }
     }
 
-
   def ticketsRoute =
     pathPrefix("events" / Segment / "tickets") { event =>
       post {
@@ -81,7 +82,6 @@ trait RestRoutes extends BoxOfficeApi with EventMarshalling {
         }
       }
     }
-
 }
 
 trait BoxOfficeApi {
@@ -96,8 +96,8 @@ trait BoxOfficeApi {
 
   lazy val boxOffice = createBoxOffice()
 
-  def createEvent(event: String, nrOfTickets: Int) = {
-    boxOffice.ask(CreateEventRequest(event, nrOfTickets))
+  def createEvent(event: String, nrOfTickets: Int, eventCategory: EventCategory) = {
+    boxOffice.ask(CreateEvent(event, nrOfTickets, eventCategory))
       .mapTo[EventResponse]
   }
 

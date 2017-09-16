@@ -1,6 +1,7 @@
 package com.goticks
 
 import akka.actor.{Actor, PoisonPill, Props}
+import com.goticks.EventCategories.EventCategory
 
 object TicketSeller {
 
@@ -17,7 +18,6 @@ object TicketSeller {
   case object GetEvent
 
   case object Cancel
-
 }
 
 class TicketSeller(event: String, category: EventCategory) extends Actor {

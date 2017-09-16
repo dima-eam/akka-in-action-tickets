@@ -2,6 +2,7 @@ package com.goticks
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import com.goticks.EventCategories.{RockMusic, Uncategorized}
 import org.scalatest.{MustMatchers, WordSpecLike}
 
 class TicketSellerSpec extends TestKit(ActorSystem("testTickets"))
