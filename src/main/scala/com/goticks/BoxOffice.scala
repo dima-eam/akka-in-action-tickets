@@ -10,6 +10,7 @@ import scala.concurrent.Future
   * Companion for supervisor actor BoxOffice. Contains its [[Props]] and possible events.
   */
 object BoxOffice {
+
   def props(implicit timeout: Timeout) = Props(new BoxOffice)
 
   def name = "boxOffice"
@@ -53,27 +54,33 @@ class BoxOffice(implicit timeout: Timeout) extends Actor with ActorLogging {
     context.actorOf(TicketSeller.props(name, category), name)
 
   def receive = {
-    case CreateEvent(name, tickets, category) =>
+    case ev: CreateEvent =>
       def create() = {
-        val eventTickets = createTicketSeller(name, category)
-        val newTickets = (1 to tickets).map { ticketId =>
+        val eventTickets = createTicketSeller(ev.name, ev.category)
+        val newTickets = (1 to ev.tickets).map { ticketId =>
           TicketSeller.Ticket(ticketId)
         }.toVector
         eventTickets ! TicketSeller.Add(newTickets)
-        sender() ! EventCreated(Event(name, tickets, category))
+        sender() ! EventCreated(Event(name, ev.tickets, ev.category))
       }
+
+      log.info("Create received: event={}", ev)
+
       context.child(name).fold(create())(_ => sender() ! EventExists)
 
-    case GetTickets(event, tickets) =>
-      def notFound() = sender() ! TicketSeller.EventTickets(event)
+    case ev: GetTickets =>
+      def notFound() = sender() ! TicketSeller.EventTickets(ev.event)
       def buy(child: ActorRef) =
-        child forward TicketSeller.Buy(tickets)
+        child forward TicketSeller.Buy(ev.tickets)
 
-      context.child(event).fold(notFound())(buy)
+      log.info("Get tickets received: event={}", ev)
+
+      context.child(ev.event).fold(notFound())(buy)
 
     case GetEvent(event) =>
       def notFound() = sender() ! None
       def getEvent(child: ActorRef) = child forward TicketSeller.GetEvent
+
       context.child(event).fold(notFound())(getEvent)
 
     case GetEvents =>
