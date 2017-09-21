@@ -3,7 +3,7 @@ package com.goticks
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit}
 import com.goticks.BoxOffice._
-import com.goticks.EventCategories.{EventCategory, RockMusic}
+import com.goticks.EventCategories.{RockMusic, EventCategory}
 import com.goticks.TicketSeller._
 import org.scalatest.{MustMatchers, WordSpecLike}
 
@@ -16,6 +16,7 @@ class BoxOfficeSpec extends TestKit(ActorSystem("testBoxOffice"))
 
   "The BoxOffice" must {
     "Create an event and get tickets from the correct Ticket Seller" in {
+
       val boxOffice = system.actorOf(BoxOffice.props)
       val eventName = "RHCP"
 

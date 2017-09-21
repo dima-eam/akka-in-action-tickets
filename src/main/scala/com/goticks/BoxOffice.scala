@@ -61,7 +61,7 @@ class BoxOffice(implicit timeout: Timeout) extends Actor with ActorLogging {
           TicketSeller.Ticket(ticketId)
         }.toVector
         eventTickets ! TicketSeller.Add(newTickets)
-        sender() ! EventCreated(Event(name, ev.tickets, ev.category))
+        sender() ! EventCreated(Event(ev.name, ev.tickets, ev.category))
       }
 
       log.info("Create received: event={}", ev)
